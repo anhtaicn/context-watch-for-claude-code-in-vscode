@@ -100,6 +100,11 @@ function activate(context) {
   }
 
   panel.onVisible = () => { tick(); };
+  // open the panel once after install, so it is found even with the Activity Bar hidden
+  if (!context.globalState.get('ctxWatch.revealed')) {
+    context.globalState.update('ctxWatch.revealed', true);
+    vscode.commands.executeCommand('ctxWatch.sessions.focus');
+  }
   restartTimer();
   tick();
 
@@ -108,6 +113,7 @@ function activate(context) {
     status,
     vscode.window.registerWebviewViewProvider('ctxWatch.sessions', panel),
     vscode.commands.registerCommand('ctxWatch.refresh', () => tick()),
+    vscode.commands.registerCommand('ctxWatch.show', () => vscode.commands.executeCommand('ctxWatch.sessions.focus')),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (!e.affectsConfiguration('ctxWatch')) return;
       if (e.affectsConfiguration('ctxWatch.claudeDir')) { titles.clear(); burnCache.clear(); }

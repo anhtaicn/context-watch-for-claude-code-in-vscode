@@ -49,6 +49,11 @@
     },
     "commands": [
       {
+        "command": "ctxWatch.show",
+        "title": "Show Sessions",
+        "category": "Context Watch"
+      },
+      {
         "command": "ctxWatch.refresh",
         "title": "Refresh",
         "category": "Context Watch",

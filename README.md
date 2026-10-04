@@ -18,7 +18,7 @@ Context Watch shows both, refreshed every 5 seconds:
   Claude Code tab shows, tokens in context, % of the model's window, and whether the session is
   `busy`, `live` or `closed`. Drag the panel to the secondary sidebar to keep it beside your editor.
 - **A status bar item** with the % context of the live session in the current workspace. It turns
-  yellow at 75% and red at 90%. Click it to open the panel.
+  yellow at 75% and red at 90%. Click it to open the panel. The panel opens by itself after install; later, run **Context Watch: Show Sessions** from the Command Palette if the Activity Bar is hidden.
 - **A burn line**: quota used on this machine in the last 5 hours and 10 minutes, across all sessions
   and their subagents, deduplicated per API request.
 
