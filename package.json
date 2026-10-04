@@ -8,12 +8,12 @@
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/anhtaicn/claude-ctx-watch.git"
+    "url": "https://github.com/anhtaicn/context-watch-for-claude-code.git"
   },
   "bugs": {
-    "url": "https://github.com/anhtaicn/claude-ctx-watch/issues"
+    "url": "https://github.com/anhtaicn/context-watch-for-claude-code/issues"
   },
-  "homepage": "https://github.com/anhtaicn/claude-ctx-watch#readme",
+  "homepage": "https://github.com/anhtaicn/context-watch-for-claude-code#readme",
   "keywords": ["claude", "claude code", "context window", "tokens", "usage", "quota"],
   "categories": ["Other", "Visualization"],
   "engines": {

@@ -1,18 +1,39 @@
 # Context Watch for Claude Code
 
-**See how full the context window of every Claude Code session on your machine is, and how much quota
-they burn together, in one sidebar panel.**
+**See the context window and the token burn of every Claude Code session on your machine, in one
+VS Code sidebar panel.**
 
 > Unofficial community extension. Not affiliated with or endorsed by Anthropic.
 
-## Why
+![Context Watch panel beside a Claude Code session](media/screenshot.jpg)
 
-`/context` answers for the window you are typing in, and only when you stop and ask. Every other
-session stays silent until one of them auto-compacts in the middle of a task you cared about. And
-Claude Code never adds spend up *across* sessions: a subagent fan-out in a window you are not watching
-can drain a 5-hour quota while you are away, and afterwards nothing tells you which window did it.
+## Why it exists
 
-Context Watch shows both, refreshed every 5 seconds:
+The desktop app loads its own tool surface into every session, and you pay for that before you type
+a word. Measured on this machine across 11 sessions (18–20 Sep 2026), the
+**context floor** — what is already in the window at the first assistant turn — ran **107,452 to
+124,902 tokens, median 117,737**. A floor is not paid once. It sits underneath every later turn of
+that session as cache read, so it is the one number that multiplies by everything else you do.
+
+Opening the same project through the VS Code extension instead: **70,623**. Same repo, same
+`CLAUDE.md`, same day, only the client changed — **36,829 tokens lighter, a third of the floor
+gone**, on every turn of the session.
+
+That move has a price, and this repo is the price. The app's context view stays in the app, and the
+custom statusline does not render inside the extension pane — so the number you switched clients to
+lower is exactly the number you can no longer see. Context Watch gives it back from outside any
+client, and gives back more than was lost: not one window, but every session on the machine.
+
+- **Which window is about to run out of context.** `/context` answers for the window you are typing
+  in, and only when you stop and ask it. The others say nothing until one of them silently
+  auto-compacts in the middle of a task you cared about.
+- **What all of them together are doing to your quota.** Claude Code never adds spend up across
+  sessions. A subagent fan-out in a window you are not watching can drain a 5-hour quota while you
+  are away from the keyboard — and afterwards nothing tells you which window did it.
+
+Both, refreshed every 5 seconds, in a panel you park beside your work.
+
+## What you get
 
 - **A Context Watch panel** with its own icon on the Activity Bar. One card per session: the name the
   Claude Code tab shows, tokens in context, % of the model's window, and whether the session is
@@ -59,7 +80,7 @@ line turns yellow above 1M in 10 minutes and red above 3M.
 
 Context Watch reads Claude Code's internal file formats, which are undocumented and can change in any
 Claude Code release. If the panel goes empty after an update, please
-[open an issue](https://github.com/anhtaicn/claude-ctx-watch/issues). Errors are logged to the
+[open an issue](https://github.com/anhtaicn/context-watch-for-claude-code/issues). Errors are logged to the
 **Context Watch** output channel.
 
 ## License
