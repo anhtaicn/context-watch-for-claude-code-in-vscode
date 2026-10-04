@@ -11,7 +11,7 @@ Ship "Context Watch for Claude Code" on VS Code Marketplace + Open VSX (Cursor/W
   no `Array.findLast`, no `structuredClone`).
 - Python prototype removed from the repo (git history keeps it). Owner: no need to keep old stuff.
 - Publisher ID: `nguyenxuantai` (also in `.env`, which is git-ignored and holds the Open VSX token).
-- GitHub repo: `anhtaicn/context-watch-for-claude-code` (renamed from `claude-ctx-watch`; package.json and README already point to the new name).
+- GitHub repo: `anhtaicn/context-watch-for-claude-code-in-vscode` (renamed from `claude-ctx-watch`; package.json and README already point to the new name).
 - Layout: `src/sessions.js` (scan, titles, alive), `src/burn.js`, `src/lines.js` (incremental and
   tail readers), `src/windows.js` (model table), `src/view.js` + `media/panel.*` (webview),
   `src/extension.js` (timer, status bar). Tests: `test/core.test.js`.

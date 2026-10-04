@@ -80,7 +80,7 @@ line turns yellow above 1M in 10 minutes and red above 3M.
 
 Context Watch reads Claude Code's internal file formats, which are undocumented and can change in any
 Claude Code release. If the panel goes empty after an update, please
-[open an issue](https://github.com/anhtaicn/context-watch-for-claude-code/issues). Errors are logged to the
+[open an issue](https://github.com/anhtaicn/context-watch-for-claude-code-in-vscode/issues). Errors are logged to the
 **Context Watch** output channel.
 
 ## License

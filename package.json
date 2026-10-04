@@ -2,18 +2,18 @@
   "name": "context-watch",
   "displayName": "Context Watch for Claude Code",
   "description": "See the context window of every Claude Code session on your machine, plus the quota they burn together, in a sidebar panel and the status bar.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "nguyenxuantai",
   "license": "MIT",
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/anhtaicn/context-watch-for-claude-code.git"
+    "url": "https://github.com/anhtaicn/context-watch-for-claude-code-in-vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/anhtaicn/context-watch-for-claude-code/issues"
+    "url": "https://github.com/anhtaicn/context-watch-for-claude-code-in-vscode/issues"
   },
-  "homepage": "https://github.com/anhtaicn/context-watch-for-claude-code#readme",
+  "homepage": "https://github.com/anhtaicn/context-watch-for-claude-code-in-vscode#readme",
   "keywords": ["claude", "claude code", "context window", "tokens", "usage", "quota"],
   "categories": ["Other", "Visualization"],
   "engines": {
