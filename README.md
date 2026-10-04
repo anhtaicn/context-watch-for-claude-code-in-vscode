@@ -1,277 +1,67 @@
-# Claude Code — Context Watch
+# Context Watch for Claude Code
 
-**See the context window and the token burn of every Claude Code session on your machine, from one
-side terminal.**
+**See how full the context window of every Claude Code session on your machine is, and how much quota
+they burn together, in one sidebar panel.**
 
-## Why it exists
+> Unofficial community extension. Not affiliated with or endorsed by Anthropic.
 
-The desktop app loads its own tool surface into every session, and you pay for that before you type
-a word. Measured on this machine with `ctx-floor.py` across 11 sessions (18–20 Sep 2026), the
-**context floor** — what is already in the window at the first assistant turn — ran **107,452 to
-124,902 tokens, median 117,737**. A floor is not paid once. It sits underneath every later turn of
-that session as cache read, so it is the one number that multiplies by everything else you do.
+## Why
 
-Opening the same project through the VS Code extension instead: **70,623**. Same repo, same
-`CLAUDE.md`, same day, only the client changed — **36,829 tokens lighter, a third of the floor
-gone**, on every turn of the session.
+`/context` answers for the window you are typing in, and only when you stop and ask. Every other
+session stays silent until one of them auto-compacts in the middle of a task you cared about. And
+Claude Code never adds spend up *across* sessions: a subagent fan-out in a window you are not watching
+can drain a 5-hour quota while you are away, and afterwards nothing tells you which window did it.
 
-That move has a price, and this repo is the price. The app's context view stays in the app, and the
-custom statusline does not render inside the extension pane — so the number you switched clients to
-lower is exactly the number you can no longer see. Context Watch gives it back from outside any
-client, and gives back more than was lost: not one window, but every session on the machine.
+Context Watch shows both, refreshed every 5 seconds:
 
-- **Which window is about to run out of context.** `/context` answers for the window you are typing
-  in, and only when you stop and ask it. The others say nothing until one of them silently
-  auto-compacts in the middle of a task you cared about.
-- **What all of them together are doing to your quota.** Claude Code never adds spend up across
-  sessions. A subagent fan-out in a window you are not watching can drain a 5-hour quota while you
-  are away from the keyboard — and afterwards nothing tells you which window did it.
+- **A Context Watch panel** with its own icon on the Activity Bar. One card per session: the name the
+  Claude Code tab shows, tokens in context, % of the model's window, and whether the session is
+  `busy`, `live` or `closed`. Drag the panel to the secondary sidebar to keep it beside your editor.
+- **A status bar item** with the % context of the live session in the current workspace. It turns
+  yellow at 75% and red at 90%. Click it to open the panel.
+- **A burn line**: quota used on this machine in the last 5 hours and 10 minutes, across all sessions
+  and their subagents, deduplicated per API request.
 
-Both, refreshed every 5 seconds, in a terminal you park beside your work:
+## Privacy
 
-```
-19:08:15  burn 5h 4.7M | 10m 692.4k
+Context Watch **reads local files only and sends nothing over the network.** It has no telemetry
+and no network code. It reads, without modifying:
 
-> Context watch packaging                                 0s
-  ███░░░░░░░░░░░░░░░░░░░   141.1k  14% ● busy
+- `~/.claude/projects/**/*.jsonl` (session transcripts: token usage and tab titles only)
+- `~/.claude/sessions/*.json` (which sessions are running)
 
-> aeo-first-82                                           14m
-  █████░░░░░░░░░░░░░░░░░   227.9k  23% ● live
+It works in Claude Code from the VS Code extension, the CLI, and the desktop app, since they all
+write these files. In a Remote (SSH / WSL / container) window it reads the remote machine's files,
+which is where Claude Code runs.
 
-  312cee1c                                               28m
-  ████░░░░░░░░░░░░░░░░░░   189.0k  19% x closed
-```
+## Settings
 
-*Hướng dẫn tiếng Việt: [HUONG-DAN.md](HUONG-DAN.md).*
-
-One row per session. You glance at it and know which window to wrap up, which one to leave running,
-and whether right now is a bad moment to spawn subagents.
-
-Stdlib Python only — no `pip install`, no `jq`, no daemon, no background service. It reads the
-transcript files Claude Code already writes to disk.
-
----
-
-## What each part of a row means
-
-| Element | Meaning |
-|---|---|
-| `>` | You submitted a prompt into this session from this working directory — this is *your* window |
-| Name | The session's real name, the one on the app tab. Falls back to the session id when there is no name |
-| `14m` | How long ago that session last wrote to its transcript |
-| Bar + `227.9k` | Tokens currently in that session's context window (input + cache read + cache write of the last API turn) |
-| `23%` | Share of the model's context window. Green under 50%, yellow from 50%, red from 75% |
-| `● live` / `● busy` / `x closed` | Whether the process is still running, and whether it is mid-turn |
-| `win?` | The model is unknown to the script, so the percentage assumes a 200k window. See *Context window sizes* |
-
-The header line is the **burn** statusline: input-equivalent tokens spent across *every* session on
-this machine in the last 5 hours and the last 10 minutes. That is the number that tells you a
-subagent fan-out is running away with your quota while you are away from the keyboard.
-
----
-
-## Three things it refuses to guess
-
-This is the whole design, and the reason it is more than a `tail` on a log file.
-
-**Which session a row belongs to.** `~/.claude/sessions/<pid>.json` maps a session id to the name
-the app puts on the tab. Without it you get eight hex characters and no idea which window is which.
-
-**Whether a session is alive.** That same file carries the pid. A closed session is reported
-`x closed` instead of freezing on its last number while still looking live. The check uses
-`OpenProcess` + `GetExitCodeProcess` on Windows — **not** `os.kill`, which on Windows *terminates*
-the target for most signals instead of probing it.
-
-**Which window is yours.** A `SessionStart` / `UserPromptSubmit` hook writes a pointer file keyed by
-working directory. Picking "the newest transcript by mtime" instead reads whichever window happened
-to write last: during development that reported **84.2k for a session actually holding 117.3k**.
-The hook makes it exact rather than a guess.
-
----
-
-## Install
-
-Requires Python 3.8+ and Claude Code having run at least once (so `~/.claude/` exists).
-
-```bash
-python install.py --dry-run
-```
-
-```bash
-python install.py
-```
-
-The installer copies five files into `~/.claude/`, backs up anything it overwrites with a
-timestamp suffix, and adds the hook + statusline entries to `settings.json`. It never deletes, and
-it refuses to take over `statusLine` if another command already owns it — it prints the line for
-you to paste instead. `--no-hooks` and `--no-statusline` skip either half.
-
-Or do it by hand:
-
-| File in this repo | Copy to | Wiring needed |
+| Setting | Default | |
 |---|---|---|
-| `ctx-watch.py` | `~/.claude/ctx-watch.py` | none — you run it yourself |
-| `ctx-floor.py` | `~/.claude/ctx-floor.py` | none — a one-shot report, not a watcher |
-| `hooks/session-pointer.py` | `~/.claude/hooks/session-pointer.py` | `SessionStart` + `UserPromptSubmit` hooks |
-| `statusline-burn.py` | `~/.claude/statusline-burn.py` | `statusLine` |
-| `commands/burn.md` | `~/.claude/commands/burn.md` | none — replace `__CLAUDE_HOME__` with your real path |
+| `ctxWatch.refreshSeconds` | `5` | How often to re-read session files. |
+| `ctxWatch.recentMinutes` | `30` | How long closed sessions stay listed. Live sessions are always shown. |
+| `ctxWatch.contextWindows` | `{}` | Window size per model, prefix match, e.g. `{ "claude-sonnet-5": 1000000 }`. |
+| `ctxWatch.showBurn` | `true` | Show the burn line. |
+| `ctxWatch.statusBar` | `true` | Show the status bar item. |
+| `ctxWatch.claudeDir` | `""` | Data directory. Empty = `$CLAUDE_CONFIG_DIR`, else `~/.claude`. |
 
-The `settings.json` fragment, with absolute paths of your own:
+### Context window sizes
 
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      { "hooks": [{ "type": "command", "command": "python /ABSOLUTE/PATH/.claude/hooks/session-pointer.py" }] }
-    ],
-    "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "python /ABSOLUTE/PATH/.claude/hooks/session-pointer.py" }] }
-    ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "python /ABSOLUTE/PATH/.claude/statusline-burn.py"
-  }
-}
-```
+Built in: `claude-opus-5*` = 1M, `claude-haiku-4-5*` = 200k. Any other model shows `window ?`
+instead of a guessed percentage; add it to `ctxWatch.contextWindows` to get a bar.
 
-Hooks take effect in the **next** session, not the one already running.
+### How burn is counted
 
----
+Tokens are weighted as input-equivalents: input ×1, cache write ×2, cache read ×0.1, output ×5. The
+line turns yellow above 1M in 10 minutes and red above 3M.
 
-## Run it
+## Limits
 
-```bash
-python ~/.claude/ctx-watch.py
-```
-
-| Flag | Effect |
-|---|---|
-| `--once` | Print one frame and exit — good for piping or a cron line |
-| `--interval=N` | Refresh every N seconds (default 5) |
-| `--since=N` | Only show sessions touched in the last N **minutes** (default 30) |
-| `--no-color` | Plain text, for terminals that do not do ANSI |
-
-The layout is built from the terminal width, two short lines per session, so a 40-column side pane
-does not wrap into soup. Widen the pane and the bars grow with it.
-
-### A button instead of a command
-
-In VS Code, add a terminal profile so the watcher is one click away in the Terminal pane's `+` menu.
-Merge `vscode/settings-snippet.json` into your user `settings.json` and
-`vscode/keybindings-snippet.json` into your `keybindings.json` — that binds `Ctrl+Alt+W` as well.
-The profile uses `-NoExit`, so `Ctrl+C` leaves you at a prompt to restart it with one arrow key.
-
-The snippets are written for PowerShell on Windows. On macOS or Linux use
-`terminal.integrated.profiles.osx` / `.linux` with `"path": "bash"` and
-`"args": ["-c", "python ~/.claude/ctx-watch.py"]`.
-
-Why a plain terminal and not the statusline: the custom statusline does not render inside the
-extension pane, and it only ever knows about its own session anyway.
-
----
-
-## Context window sizes
-
-The script knows one model explicitly:
-
-```python
-WINDOWS = {"claude-opus-5": 1_000_000}   # observed via /context
-WINDOW_DEFAULT = 200_000
-```
-
-Anything else is assumed to be 200k and flagged `win?` so you know the percentage is a guess — the
-token count itself is always exact. Two ways to fix a wrong guess: add the model id to `WINDOWS`,
-or export `CLAUDE_CTX_WINDOW=1000000` before starting the watcher to force a window for the whole
-run.
-
----
-
-## Measure your own floor
-
-The number in *Why it exists* is not a claim you have to take on trust — it is one command on your
-own transcripts:
-
-```bash
-python ctx-floor.py
-```
-
-```
-    FLOOR  DAY         CLIENT          PROJECT                             SESSION
-   70,623  2026-09-20  vscode          …sieusay-Agency-AEO-First           aeo-first-82
-  107,452  2026-09-20  desktop         …sieusay-Agency-AEO-First           Kiểm tra kết quả nghiên cứu
-  117,737  2026-09-19  desktop         …Documents-my-website               Lô 5 và 6
-  124,902  2026-09-19  desktop         …Documents-my-website               Kết quả audit
-
-desktop        n=11  min 107,452   median 117,737   max 124,902
-vscode         n=1   min 70,623    median 70,623    max 70,623
-```
-
-Two honest caveats, because the tool prints them but a reader skims them. **Only rows from the same
-project compare clients** — `CLAUDE.md`, MCP servers and skills move the floor as much as the client
-does; the pair above is the same repo on the same day, which is why it is the pair quoted. And the
-VS Code side is **n = 1**: enough to show the mechanism, not enough to publish as an average. Run it
-on your own machine and you will get your own numbers, which is the point.
-
-`--all` includes sessions the index no longer knows about; those rows have no client and no name.
-
----
-
-## The burn line and `/burn`
-
-`statusline-burn.py` walks every transcript touched in the last 5 hours, **dedupes by
-`requestId`** — summing per assistant line inflates the total roughly 1.8x — and prices tokens as
-input-equivalents: input x1, cache write x2, cache read x0.1, output x5. It caches a byte offset
-per file, so a refresh costs a few milliseconds no matter how large the transcripts get.
-
-Markers on the 10-minute figure: `^` past 1M, `!` past 3M. `agents N/10m` appears if something is
-logging subagent spawns to `~/.claude/hooks/state/spawns.jsonl`.
-
-`/burn` is the same number on demand, as a slash command, without opening a terminal.
-
----
-
-## Limits, stated honestly
-
-- **Session names come from the desktop app.** `~/.claude/sessions/<pid>.json` is written by the
-  Claude Code desktop app. In a CLI-only setup the file may not exist; rows then show the first
-  eight characters of the session id and everything is reported `x closed`, because there is no pid
-  to check.
-- **Tested on Windows 11** with the desktop app and VS Code. The POSIX branches are there — `~`
-  paths throughout, an `os.kill(pid, 0)` path for non-Windows — but macOS and Linux have not been
-  exercised.
-- **The percentage is only as good as the window size.** See above.
-- **Input-equivalents are not dollars.** The weights approximate relative cost so you can compare
-  one hour against another. On a subscription plan, read them as quota pressure, not as a bill.
-- **It reads, it never writes** to anything Claude Code owns. The only file it creates is the
-  pointer under `~/.claude/hooks/state/live/`, and the hook swallows every exception on purpose —
-  a monitoring hook must never be able to break a session.
-
----
-
-## Troubleshooting
-
-| Symptom | Cause |
-|---|---|
-| Empty list | No session wrote a transcript in the last 30 minutes. Raise it: `--since=240` |
-| No `>` on any row | The hooks are not registered, or you registered them after the session started |
-| Every row says `x closed` | `~/.claude/sessions/` has no file for those pids — CLI-only setup, see *Limits* |
-| Percentages look wrong, `win?` shown | Unknown model. Add it to `WINDOWS` or set `CLAUDE_CTX_WINDOW` |
-| Boxes instead of bars | Terminal has no UTF-8; the script falls back to `#` and `.` when it detects that, force it with `--no-color` and a chcp 65001 shell |
-| `burn n/a` in the header | `statusline-burn.py` is not at `~/.claude/statusline-burn.py` |
-
----
-
-## Related
-
-[**claude-global-rules**](https://github.com/anhtaicn/claude-global-rules) — the global `CLAUDE.md`
-this was built alongside, with the measured cost model behind these numbers and
-`hooks/agent-fanout-guard.py`, which *stops* a runaway fan-out instead of only showing it to you.
-`statusline-burn.py` ships in both repos; it is the same file, so installing both is harmless.
-
----
+Context Watch reads Claude Code's internal file formats, which are undocumented and can change in any
+Claude Code release. If the panel goes empty after an update, please
+[open an issue](https://github.com/anhtaicn/claude-ctx-watch/issues). Errors are logged to the
+**Context Watch** output channel.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). No credentials, no personal paths, no telemetry in this repo; copy
-it, edit it, pass it on.
+MIT

@@ -1,0 +1,118 @@
+{
+  "name": "context-watch",
+  "displayName": "Context Watch for Claude Code",
+  "description": "See the context window of every Claude Code session on your machine, plus the quota they burn together, in a sidebar panel and the status bar.",
+  "version": "1.0.0",
+  "publisher": "nguyenxuantai",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anhtaicn/claude-ctx-watch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/anhtaicn/claude-ctx-watch/issues"
+  },
+  "homepage": "https://github.com/anhtaicn/claude-ctx-watch#readme",
+  "keywords": ["claude", "claude code", "context window", "tokens", "usage", "quota"],
+  "categories": ["Other", "Visualization"],
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionKind": ["workspace"],
+  "capabilities": {
+    "untrustedWorkspaces": { "supported": true },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ctxWatch",
+          "title": "Context Watch",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "ctxWatch": [
+        {
+          "type": "webview",
+          "id": "ctxWatch.sessions",
+          "name": "Sessions"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "ctxWatch.refresh",
+        "title": "Refresh",
+        "category": "Context Watch",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "ctxWatch.refresh",
+          "when": "view == ctxWatch.sessions",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Context Watch",
+      "properties": {
+        "ctxWatch.refreshSeconds": {
+          "type": "number",
+          "default": 5,
+          "minimum": 2,
+          "description": "How often to re-read session files, in seconds."
+        },
+        "ctxWatch.recentMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "description": "Keep closed sessions in the list for this many minutes after their last activity. Live sessions are always shown."
+        },
+        "ctxWatch.contextWindows": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": { "type": "number" },
+          "markdownDescription": "Context window size per model, matched by prefix (longest wins), e.g. `{ \"claude-sonnet-5\": 1000000 }`. Overrides the built-in table. Models with no known size show `window ?`."
+        },
+        "ctxWatch.showBurn": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the quota burned across all sessions in the last 5 hours and 10 minutes."
+        },
+        "ctxWatch.statusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the context usage of this workspace's live session in the status bar."
+        },
+        "ctxWatch.claudeDir": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Claude Code data directory. Empty = `$CLAUDE_CONFIG_DIR`, else `~/.claude`."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "check": "tsc -p jsconfig.json",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.0",
+    "@types/vscode": "~1.75.0",
+    "@vscode/vsce": "^3.2.0",
+    "ovsx": "^0.10.0",
+    "typescript": "^5.6.0"
+  }
+}

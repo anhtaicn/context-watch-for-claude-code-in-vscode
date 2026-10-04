@@ -1,7 +1,0 @@
-[
-  {
-    "key": "ctrl+alt+w",
-    "command": "workbench.action.terminal.newWithProfile",
-    "args": { "profileName": "Context Watch" }
-  }
-]
